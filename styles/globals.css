@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #003A70 0%, #0066CC 50%, #00A651 100%);
+}
+
+.card-shadow {
+  box-shadow: 0 10px 25px rgba(0, 58, 112, 0.1);
+}
+
+.btn-primary {
+  @apply bg-gradient-to-r from-standard-blue to-standard-light-blue text-white font-semibold py-3 px-6 rounded-lg hover:from-standard-light-blue hover:to-standard-blue transition duration-300 transform hover:scale-105;
+}
+
+.btn-success {
+  @apply bg-gradient-to-r from-standard-green to-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-green-600 hover:to-standard-green transition duration-300;
+}
+
+.input-field {
+  @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-standard-blue focus:border-transparent transition duration-200;
+}
