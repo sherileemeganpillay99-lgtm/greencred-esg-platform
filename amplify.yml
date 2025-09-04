@@ -3,10 +3,21 @@ frontend:
   phases:
     preBuild:
       commands:
-        - yarn install --frozen-lockfile
+        - echo "🚀 Starting GreenCred build process"
+        - echo "Node version:" && node --version
+        - echo "Yarn version:" && yarn --version
+        - yarn install --frozen-lockfile --production=false
+        - echo "✅ Dependencies installed successfully"
     build:
       commands:
+        - echo "🔨 Building GreenCred application"
         - yarn build
+        - echo "✅ Build completed successfully"
+    postBuild:
+      commands:
+        - echo "🧹 Post-build cleanup"
+        - echo "Build artifacts created in .next directory"
+        - ls -la .next
   artifacts:
     baseDirectory: .next
     files:
@@ -15,6 +26,7 @@ frontend:
     paths:
       - node_modules/**/*
       - .next/cache/**/*
+      - yarn.lock
   customHeaders:
     - pattern: '**/*'
       headers:
@@ -24,3 +36,25 @@ frontend:
           value: 'DENY'
         - key: 'X-Content-Type-Options'
           value: 'nosniff'
+        - key: 'Referrer-Policy'
+          value: 'strict-origin-when-cross-origin'
+        - key: 'Permissions-Policy'
+          value: 'camera=(), microphone=(), geolocation=()'
+    - pattern: '/api/**'
+      headers:
+        - key: 'Cache-Control'
+          value: 'no-cache, no-store, must-revalidate'
+        - key: 'Access-Control-Allow-Origin'
+          value: '*'
+        - key: 'Access-Control-Allow-Methods'
+          value: 'GET, POST, PUT, DELETE, OPTIONS'
+        - key: 'Access-Control-Allow-Headers'
+          value: 'Content-Type, Authorization'
+    - pattern: '**/*.js'
+      headers:
+        - key: 'Cache-Control'
+          value: 'public, max-age=31536000, immutable'
+    - pattern: '**/*.css'
+      headers:
+        - key: 'Cache-Control'
+          value: 'public, max-age=31536000, immutable'
