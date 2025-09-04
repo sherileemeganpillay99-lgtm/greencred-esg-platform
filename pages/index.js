@@ -15,7 +15,9 @@ import {
   DollarSign,
   PieChart,
   BarChart3,
-  CheckCircle
+  CheckCircle,
+  MessageCircle,
+  Clock
 } from 'lucide-react';
 import { calculateESGScore, calculateLoanTerms, getESGRecommendations } from '../utils/esgCalculator';
 import { callCalculateScore } from '../lib/api-config';
@@ -88,6 +90,9 @@ const generateESGInsights = (scores) => {
 import AIInsights from '../components/AIInsights';
 import RealTimeESG from '../components/RealTimeESG';
 import LoanApplication from '../components/LoanApplication';
+import DocumentUpload from '../components/DocumentUpload';
+import ESGChatbot from '../components/ESGChatbot';
+import ApplicationStatus from '../components/ApplicationStatus';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('application');
@@ -104,6 +109,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [scraperActive, setScraperActive] = useState(false);
   const [showLoanApplication, setShowLoanApplication] = useState(false);
+  const [extractedESGData, setExtractedESGData] = useState(null);
+  const [applicationSubmitted, setApplicationSubmitted] = useState(false);
+  const [referenceNumber, setReferenceNumber] = useState('');
 
   const handleAutoFetchESG = async () => {
     if (!companyName.trim()) {
@@ -205,6 +213,51 @@ export default function Home() {
     }));
   };
 
+  const handleESGDataExtracted = (extractedData) => {
+    setExtractedESGData(extractedData);
+    // Auto-populate the ESG data fields if data was extracted
+    Object.keys(extractedData).forEach(key => {
+      if (extractedData[key] !== null && extractedData[key] !== undefined) {
+        setEsgData(prev => ({
+          ...prev,
+          [key]: extractedData[key].toString()
+        }));
+      }
+    });
+  };
+
+  const submitLoanApplication = async (applicationData) => {
+    try {
+      const response = await fetch('/api/submit-application', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...applicationData,
+          esgScores: results?.breakdown || esgData,
+          companyName,
+          loanAmount: results?.loanAmount || loanAmount,
+          extractedESGData,
+          overallScore: results?.overallScore
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setApplicationSubmitted(true);
+        setReferenceNumber(result.data.referenceNumber);
+        return result.data;
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.error('Application submission error:', error);
+      throw error;
+    }
+  };
+
   const ScoreCard = ({ icon: Icon, title, value, color, subtitle }) => (
     <div className="bg-white rounded-xl p-6 shadow-lg border-l-4 hover:shadow-xl transition-shadow duration-300" style={{ borderLeftColor: color }}>
       <div className="flex items-center justify-between">
@@ -275,6 +328,7 @@ export default function Home() {
           <TabButton id="results" label="Results" icon={BarChart3} />
           <TabButton id="insights" label="AI Insights" icon={Award} />
           <TabButton id="monitoring" label="Live ESG" icon={TrendingUp} />
+          <TabButton id="status" label="Track Status" icon={Clock} />
         </div>
 
         {/* Application Tab */}
@@ -338,21 +392,26 @@ export default function Home() {
                   </button>
                 </div>
 
-                {/* File Upload */}
+                {/* Smart Document Upload with Textract */}
+                <DocumentUpload 
+                  onESGDataExtracted={handleESGDataExtracted}
+                  companyName={companyName}
+                />
+
+                {/* Legacy File Upload (kept for compatibility) */}
                 <div>
                   <label className="block text-sm font-semibold text-standard-blue mb-2">
-                    Upload ESG Documentation (Optional)
+                    Additional Documentation (Optional)
                   </label>
                   <div className="flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-standard-blue border-dashed rounded-xl cursor-pointer bg-blue-50 hover:bg-blue-100 transition duration-200">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-10 h-10 mb-4 text-standard-blue" />
-                        <p className="mb-2 text-sm text-standard-blue">
-                          <span className="font-semibold">Click to upload</span> or drag and drop
+                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition duration-200">
+                      <div className="flex flex-col items-center justify-center pt-3 pb-4">
+                        <Upload className="w-8 h-8 mb-2 text-gray-400" />
+                        <p className="text-sm text-gray-500">
+                          <span className="font-semibold">Upload additional files</span>
                         </p>
-                        <p className="text-xs text-standard-gray">PDF, CSV, Excel files</p>
                         {uploadedFile && (
-                          <p className="text-sm text-standard-green mt-2 font-semibold">✓ {uploadedFile.name}</p>
+                          <p className="text-sm text-standard-green mt-1 font-semibold">✓ {uploadedFile.name}</p>
                         )}
                       </div>
                       <input type="file" className="hidden" onChange={handleFileUpload} accept=".csv,.xlsx,.pdf" />
@@ -579,6 +638,13 @@ export default function Home() {
           </div>
         )}
 
+        {/* Application Status Tab */}
+        {activeTab === 'status' && (
+          <div className="max-w-6xl mx-auto">
+            <ApplicationStatus />
+          </div>
+        )}
+
         {/* Info Section */}
         <div className="max-w-6xl mx-auto mt-12">
           <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-standard-green">
@@ -621,7 +687,54 @@ export default function Home() {
         isOpen={showLoanApplication}
         onClose={() => setShowLoanApplication(false)}
         results={results}
+        onSubmit={submitLoanApplication}
       />
+
+      {/* ESG Chatbot */}
+      <ESGChatbot 
+        esgScores={results?.breakdown || (esgData.environmental ? esgData : null)}
+        companyName={companyName}
+      />
+
+      {/* Success Modal */}
+      {applicationSubmitted && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
+            <div className="w-20 h-20 bg-standard-green rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-12 h-12 text-white" />
+            </div>
+            
+            <h2 className="text-2xl font-bold text-standard-blue mb-4">Application Submitted Successfully!</h2>
+            
+            <p className="text-gray-600 mb-6">
+              Your loan application has been submitted and sent to our ESG specialists for review.
+            </p>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-blue-800 mb-2">Reference Number:</h3>
+              <p className="text-xl font-bold text-blue-600">{referenceNumber}</p>
+              <p className="text-sm text-blue-600 mt-2">Please save this number to track your application</p>
+            </div>
+            
+            <button
+              onClick={() => {
+                setApplicationSubmitted(false);
+                setActiveTab('status');
+              }}
+              className="w-full bg-standard-blue text-white font-semibold py-3 px-6 rounded-lg hover:bg-standard-light-blue transition duration-200 mb-3"
+            >
+              Track Application Status
+            </button>
+            
+            <button
+              onClick={() => setApplicationSubmitted(false)}
+              className="w-full text-standard-blue font-semibold py-2 px-6 rounded-lg hover:bg-blue-50 transition duration-200"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

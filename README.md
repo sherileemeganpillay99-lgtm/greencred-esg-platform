@@ -10,6 +10,7 @@
 - **Web Scraping**: Automatically fetches ESG data from public sources
 - **AI Insights**: Advanced machine learning algorithms provide actionable recommendations
 - **Real-time Monitoring**: Live ESG metric tracking and alerts
+- **Document Processing**: AWS Textract integration for intelligent ESG data extraction
 
 ### 📊 Comprehensive Scoring System
 - **Equal Weighting**: Environmental (25%), Social (25%), Governance (25%), Risk Management (25%)
@@ -26,14 +27,42 @@
 - **Performance Tracking**: Historical trends and improvement recommendations
 - **Benchmark Comparisons**: Industry-standard ESG rating distributions
 
+### 🔄 Workflow Management
+- **Application Processing**: Automated loan application workflow
+- **Agent Review System**: Human review integration for compliance
+- **Status Tracking**: Real-time application status updates
+- **Reference Number System**: Easy application tracking
+
+### 💬 AI Assistant & Support
+- **ESG Chatbot**: AWS Bedrock-powered Q&A for sustainability questions
+- **Personalized Advice**: Tailored recommendations based on ESG scores
+- **24/7 Support**: Always-available assistance for ESG and finance queries
+
+### ☁️ AWS Cloud Integration
+- **S3 Storage**: Secure document storage and management
+- **Textract Processing**: Intelligent document analysis and data extraction
+- **Bedrock AI**: Advanced natural language processing for chatbot
+- **Scalable Architecture**: Enterprise-ready cloud infrastructure
+
 ## 🛠️ Technology Stack
 
-- **Frontend**: Next.js 14, React 18
+### Frontend
+- **Framework**: Next.js 14, React 18
 - **Styling**: Tailwind CSS with Standard Bank branding
 - **Charts**: Recharts for data visualization
 - **Icons**: Lucide React
-- **Web Scraping**: JSDOM, Axios
 - **Package Manager**: Yarn
+
+### Backend & APIs
+- **Web Scraping**: JSDOM, Axios
+- **File Processing**: Multer for file uploads
+- **Unique IDs**: UUID for reference numbers
+
+### AWS Services
+- **AWS SDK**: @aws-sdk/client-textract, @aws-sdk/client-s3, @aws-sdk/client-bedrock-runtime
+- **Textract**: Document text and data extraction
+- **S3**: Secure file storage and document management
+- **Bedrock**: AI-powered chatbot and natural language processing
 
 ## 🏢 Standard Bank Integration
 
@@ -69,13 +98,32 @@ cd GreenCred
 yarn install
 ```
 
-3. **Run development server**
+3. **Configure AWS services**
+```bash
+# Copy the environment template
+cp .env.local.example .env.local
+
+# Edit .env.local with your AWS credentials:
+# AWS_ACCESS_KEY_ID=your_access_key
+# AWS_SECRET_ACCESS_KEY=your_secret_key  
+# AWS_S3_BUCKET=your-s3-bucket-name
+```
+
+4. **Run development server**
 ```bash
 yarn dev
 ```
 
-4. **Open in browser**
+5. **Open in browser**
 Navigate to `http://localhost:3000`
+
+### AWS Services Setup
+
+To fully utilize all features, configure these AWS services:
+
+1. **Amazon S3**: Create a bucket for document storage
+2. **Amazon Textract**: Enable document processing (no setup required, pay-per-use)
+3. **Amazon Bedrock**: Enable Claude models in your AWS region
 
 ### Build for Production
 ```bash
@@ -207,7 +255,7 @@ Fully functional prototype with realistic data and compelling user stories.
 
 ---
 
-*Built with ❤️ for Standard Bank Hackathon 2024*
+*Built with ❤️ for Standard Bank Hackathon 2025*
 
 **"Financing the Future, Sustainably"**
 
